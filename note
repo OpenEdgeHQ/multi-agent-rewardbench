@@ -1,0 +1,50 @@
+# VLLM Inference
+
+## avoid pip causing issues of memory
+```
+export TMPDIR=/workspace/tmp
+mkdir -p $TMPDIR
+export UV_CACHE_DIR=/workspace/uv-cache
+mkdir -p $UV_CACHE_DIR
+```
+
+# install uv
+```
+pip install uv --cache-dir=/workspace/pip_cache --prefix=/workspace/envs/vllm
+```
+
+## install vllm
+```
+uv pip install vllm --cache-dir=/workspace/pip_cache --prefix=/workspace/envs/vllm
+```
+
+## Example usage of vllm
+```
+CUDA_VISIBLE_DEVICES=0 python debug.py
+```
+
+
+uv pip install -U huggingface_hub --cache-dir=/workspace/pip_cache --prefix=/workspace/envs/cjc
+
+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
+
+huggingface-cli download mistralai/Ministral-8B-Instruct-2410 --local-dir ./Ministral-8B-Instruct-2410
+
+
+# SGLang Inference
+
+
+CUDA_VISIBLE_DEVICES=2 python agent_register.py --config_num 1
+CUDA_VISIBLE_DEVICES=3 python agent_register.py --config_num 2
+
+python user_register.py --cot_num 2
+
+
+CUDA_VISIBLE_DEVICES=2 python eval_single_model.py
+
+CUDA_VISIBLE_DEVICES=1 python debug_plan_mis2.py
+
+CUDA_VISIBLE_DEVICES=3 vllm serve --port 8000 /workspace/deepseek-math-7b-instruct --dtype auto --served-model-name deepseek-math-7b-instruct --trust-remote-code
+
+
+huggingface-cli download Qwen/Qwen2.5-1.5B-Instruct --local-dir ./Qwen2.5-1.5B-Instruct
