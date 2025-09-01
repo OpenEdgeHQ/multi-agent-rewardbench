@@ -12,7 +12,7 @@ from datasets import load_dataset
 from tqdm.asyncio import tqdm_asyncio  # tqdm 的 asyncio 版本
 
 # ---------- 全局配置 ----------
-os.environ["ANTHROPIC_API_KEY"] = "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"
+os.environ["ANTHROPIC_API_KEY"] = "XXX"
 OUTPUT_DIR = "optimized_data"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 RESULT_FILE = f"{OUTPUT_DIR}/optimized_results_{datetime.now().strftime('%Y%m%d')}.jsonl"

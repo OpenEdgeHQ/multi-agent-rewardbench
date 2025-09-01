@@ -36,7 +36,7 @@ def send_request():
     response = requests.get(
         url='https://app.scrapingbee.com/api/v1',
         params={
-            'api_key': 'NK79A781O9QJTZI11KM23DHPFCEWKAOJCT0YTN6A234XWGXVVGLB4XLFENGJLT5VPEM9WSN04DORF9UH',
+            'api_key': 'XXX',
             'url': 'https://zhuanlan.zhihu.com/p/1925858930858386901',
             'premium_proxy': 'true',
             'country_code': 'us',

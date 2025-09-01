@@ -5,7 +5,7 @@ async def search(query):
     response = requests.get(
         url='https://app.scrapingbee.com/api/v1/store/google',
         params={
-            'api_key': '1M2O3Q87TQ47ZA3JI25HNBFCEOF93P86D76EEOIDOH1C3TFNCTRKD31X1E8BROW3WPOYUXYAQUHNKI3O',
+            'api_key': 'XXX',
             'search': query,
             'language': 'en',
             'nb_results': '20',

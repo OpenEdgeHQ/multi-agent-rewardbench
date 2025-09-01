@@ -30,7 +30,7 @@ async def fetch(fetch_url: str) -> str:
     异步获取网页内容
     """
     base_url = 'https://app.scrapingbee.com/api/v1'
-    api_key = '1M2O3Q87TQ47ZA3JI25HNBFCEOF93P86D76EEOIDOH1C3TFNCTRKD31X1E8BROW3WPOYUXYAQUHNKI3O'
+    api_key = 'xxx'
 
     configs = [
         {
