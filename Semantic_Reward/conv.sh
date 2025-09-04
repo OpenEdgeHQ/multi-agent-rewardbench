@@ -1,0 +1,1 @@
+python -m verl.model_merger merge --backend fsdp --local_dir /mnt/ckpts/DAPO/DAPO-Qwen2.5-0.5/global_step_200/actor --target_dir /mnt/ckpts/DAPO/0.5
