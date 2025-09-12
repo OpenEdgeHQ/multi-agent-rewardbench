@@ -94,6 +94,14 @@ class DAPORewardManager(AbstractRewardManager):
 
             extra_info = data_item.non_tensor_batch.get("extra_info", None)
 
+            # 透传 enhanced_answer 到 extra_info
+            if extra_info is None:
+                extra_info = {}
+            if isinstance(extra_info, dict):
+                enhanced_answer = data_item.non_tensor_batch.get("enhanced_answer", None)
+                if enhanced_answer is not None and "enhanced_answer" not in extra_info:
+                    extra_info["enhanced_answer"] = enhanced_answer
+
             result = self.compute_score(
                 data_source=data_source,
                 solution_str=response_str,
