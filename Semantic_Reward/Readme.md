@@ -20,3 +20,8 @@ bash recipe/dapo/run_rewardbench.sh
 bash conv.sh
 ```
 将权重转化为Huggingface格式。
+
+
+关于数据，可以check data.py通过原版数据构造verl格式的数据，然后简单写个脚本把对应增强数据的增强答案，加到原版数据的enhanced_answer这个key里(记得check system prompt，之前jiachen构造的system prompt不一样)
+
+示例数据：4agent.parquet
