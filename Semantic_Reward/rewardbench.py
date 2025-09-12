@@ -14,11 +14,13 @@ from nltk.translate import bleu_score
 from rouge_score import rouge_scorer
 # Import PyTorch and Hugging Face Transformers
 import torch
-
+import re
+import math
+from typing import List, Dict, Any
 # Import math-related utilities
 from latex2sympy2_extended import NormalizationConfig
 from math_verify import LatexExtractionConfig, parse, verify
-
+import numpy as np
 def accuracy_reward(completion: str, solution: str, **kwargs):
     """
     Reward function to check if the model's response is mathematically 
@@ -52,19 +54,49 @@ def accuracy_reward(completion: str, solution: str, **kwargs):
     return reward
 
 # Implement Format Reward Function
-def format_reward(completion: str, **kwargs):
-    """
-    Reward function to check if the completion has the correct format:
-    <think>...</think> <answer>...</answer>.
-    """
-    # Define the regex pattern for the desired format
-    pattern = r"^<think>.*?</think>\s*<answer>.*?</answer>$"
 
-    # Check if completion matches the pattern
-    match = re.match(pattern, completion, re.DOTALL | re.MULTILINE)
+ASSISTANT_MARKER = r"<\|im_start\|>assistant"
+IM_END_MARKER = r"<\|im_end\|>"
 
-    # Reward 1.0 for correct format, 0.0 otherwise
-    return 1.0 if match else 0.0
+TAGS = {
+    "<think>": 0.25,
+    "</think>": 0.25,
+    "<answer>": 0.25,
+    "</answer>": 0.25,
+}
+
+def _slice_after_assistant(text: str) -> str:
+    m = re.search(rf"{ASSISTANT_MARKER}\s*", text)
+    return text[m.end():] if m else text
+
+def _strip_at_im_end(text: str) -> str:
+    m = re.search(rf"{IM_END_MARKER}", text)
+    return text[:m.start()] if m else text
+
+def _presence_score(text: str) -> float:
+    """
+    四个目标标签：
+    - 若某个标签出现次数 == 1 → 得分 0.25
+    - 出现 0 次 → 该部分不得分
+    - 出现 >1 次 → 该标签得分 0
+    """
+    text = _slice_after_assistant(text)
+    text = _strip_at_im_end(text)
+
+    counts = {tag: text.count(tag) for tag in TAGS}
+    
+    # 计算得分：标签出现 0 次 不得分，出现 1 次 得 0.25 分，出现 >1 次 得 0 分
+    score = 0.0
+    for tag, count in counts.items():
+        if count == 1:
+            score += TAGS[tag]  # 只有出现一次时，才加上该标签的分数
+        # 如果标签出现超过一次，则不加分
+
+    return score
+
+def format_reward(completion, **kwargs):
+
+    return float(_presence_score(completion))
 
 def reasoning_steps_reward(completion: str, **kwargs):
     r"""
@@ -149,7 +181,7 @@ def get_repetition_penalty_reward(ngram_size: int = 3, max_penalty: float = -0.1
         return reward
     return repetition_penalty_reward
 
-def compute_score_ours(model_output: str, ground_truth: str):
+def compute_score_ours(model_output: str, ground_truth: str, enhanced_answer: str = ""):
     """
     Aggregate function that combines all reward functions with equal weights.
     Returns the average of all individual rewards.
@@ -157,7 +189,8 @@ def compute_score_ours(model_output: str, ground_truth: str):
     # Initialize reward functions
     cosine_scaled_reward = get_cosine_scaled_reward()
     repetition_penalty_reward = get_repetition_penalty_reward()
-    semantic_score=compute_semantic_score(ground_truth,model_output)
+    semantic_score=compute_semantic_score(enhanced_answer,model_output)
+    #print(enhanced_answer)
     # Calculate individual rewards
     acc_reward = accuracy_reward(model_output, ground_truth)
     format_reward_val = format_reward(model_output)
@@ -167,14 +200,14 @@ def compute_score_ours(model_output: str, ground_truth: str):
     
     # Calculate equal-weighted average
     total_reward = (acc_reward + format_reward_val + reasoning_reward + 
-                   cosine_reward + repetition_reward + 2*semantic_score) / 6.0
+                   cosine_reward + repetition_reward + semantic_score) / 6.0
     
     return total_reward 
 
 
 def compute_semantic_score(target_text, generated_text, rerank_score=1.0,
                            bleu=None, rouge1=None, rouge2=None, rougeL=None, ngram=None,
-                           max_retries=100, base_backoff=0):
+                           max_retries=10000, base_backoff=0):
     """
     max_retries: 最多重试次数（包含第一次请求）
     base_backoff: 退避基数（秒），第 i 次失败后 sleep = base_backoff * i
