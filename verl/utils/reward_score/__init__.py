@@ -104,7 +104,11 @@ def default_compute_score(
     elif data_source == "Rewardbench":
         from . import rewardbench
 
-        res = rewardbench.compute_score_ours(solution_str, ground_truth)
+        enhanced_answer = ""
+        if isinstance(extra_info, dict):
+            enhanced_answer = extra_info.get("enhanced_answer", "")
+
+        res = rewardbench.compute_score_ours(solution_str, ground_truth, enhanced_answer)
     else:
         raise NotImplementedError(f"Reward function is not implemented for {data_source=}")
 
